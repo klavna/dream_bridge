@@ -1,6 +1,6 @@
 # dream_bridge
 
-Dream Bridge Application by Next Step
+Next Step Team
 
 ## Getting Started
 

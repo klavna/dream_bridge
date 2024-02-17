@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services'
 }
 
 def localProperties = new Properties()
@@ -26,6 +27,8 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
+
+def googleMapApiKey = localProperties.getProperty('google.map.key')
 
 android {
     namespace "com.nextstep.dream_bridge"
@@ -53,6 +56,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        manifestPlaceholders["googleMapApiKey"] = googleMapApiKey
     }
 
     buildTypes {
@@ -67,5 +71,7 @@ android {
 flutter {
     source '../..'
 }
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:32.7.2')
+}
 
-dependencies {}

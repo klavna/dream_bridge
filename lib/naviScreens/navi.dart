@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'naviScreens/home.dart';
-import 'naviScreens/saved.dart';
-import 'naviScreens/info.dart';
+import 'home.dart';
+import 'info.dart';
+import 'mapScreen/mapScreen.dart';
 
 class NaviScreen extends StatefulWidget {
   const NaviScreen({super.key});
@@ -19,19 +19,21 @@ class _NaviScreenState extends State<NaviScreen> {
 
   Future<bool> onWillPop() async {
     DateTime currentTime = DateTime.now();
+    bool backButton = currentBackPressTime == null ||
+        currentTime.difference(currentBackPressTime!) > const Duration(seconds: 2);
 
-    if (currentBackPressTime == null ||
-        currentTime.difference(currentBackPressTime!) > const Duration(seconds: 2)) {
+    if (backButton) {
       currentBackPressTime = currentTime;
       Fluttertoast.showToast(
-          msg: "'뒤로' 버튼을 한번 더 누르시면 종료됩니다.",
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: const Color(0xff6E6E6E),
-          fontSize: 20,
-          toastLength: Toast.LENGTH_SHORT);
-      return false;
+        msg: "'뒤로' 버튼을 한번 더 누르시면 종료됩니다.",
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: const Color(0xff6E6E6E),
+        fontSize: 20,
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      return Future.value(false);
     }
-    return true;
+    return Future.value(true);
   }
 
   @override
@@ -40,8 +42,8 @@ class _NaviScreenState extends State<NaviScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: PageView(
-
           controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(), // Add this line
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
@@ -49,7 +51,7 @@ class _NaviScreenState extends State<NaviScreen> {
           },
           children: const [
             HomeScreen(),
-            SavedScreen(),
+            MapScreen(),
             InformationScreen(),
           ],
         ),
@@ -62,8 +64,8 @@ class _NaviScreenState extends State<NaviScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Saved',
+            icon: Icon(Icons.map),
+            label: 'Map',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.info),
@@ -71,11 +73,10 @@ class _NaviScreenState extends State<NaviScreen> {
           ),
         ],
         onTap: (index) {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-          );
+          _pageController.jumpToPage(index); // Changed from animateToPage for immediate response
+          setState(() {
+            _currentIndex = index;
+          });
         },
       ),
     );

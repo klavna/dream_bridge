@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'navi.dart';
+import 'naviScreens/navi.dart';
 
 import 'mainAnimation/shape.dart';
 import 'mainAnimation/shapePainter.dart';
