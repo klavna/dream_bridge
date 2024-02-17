@@ -1,7 +1,11 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'navi.dart';
+
+import 'mainAnimation/shape.dart';
+import 'mainAnimation/shapePainter.dart';
 
 void main() => runApp(const MyApp());
 
@@ -49,63 +53,86 @@ class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTick
         shapes = List.generate(numberOfShapes, (index) {
           final size = random.nextDouble() * 50 + 20;
           final position = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight);
-          final targetPosition = Offset(screenWidth / 2, screenHeight / 2);
-          return AnimatedShape(size: size, position: position, targetPosition: targetPosition);
+          final targetPosition = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight); // 최종 위치도 무작위로 설정
+          final shapeType = ShapeType.values[random.nextInt(ShapeType.values.length)]; // 도형 종류 무작위 선택
+          return AnimatedShape(size: size, position: position, targetPosition: targetPosition, shapeType: shapeType);
         });
       });
     });
+
   }
 
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        // Animated shapes in the background
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: ShapePainter(shapes, _controller.value),
-              child: Container(),
-            );
-          },
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF6DC1DC), // Light blue
+            Color(0xFFA690FC), // Purple
+            Color(0xFFFC96BB), // Pink
+            Color(0xFFFFC397), // Orange
+          ],
         ),
-        // Text and Button on top of the shapes
-        const Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: EdgeInsets.only(top: 100.0),
-            child: Text(
-              'Dream Bridge\nNext Step',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 40.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+      ),
+      child: Stack(
+        children: <Widget>[
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: ShapePainter(shapes, _controller.value),
+                child: Container(),
+              );
+            },
+          ),
+          const Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: EdgeInsets.only(top: 100.0,left: 30),
+              child: Text(
+                'Dream Bridge\nNext Step',
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          bottom: 50.0,
-          left: 0.0,
-          right: 0.0,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const NaviScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, // Background color
-              backgroundColor: Colors.black, // Text Color (Foreground color)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 40),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width - 200.0, // Subtract the padding from the total width
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NaviScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, // Text Color
+                    backgroundColor: Colors.black, // Button Background Color
+                    padding: const EdgeInsets.symmetric(vertical: 15.0), // Vertical padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                    ),
+                  ),
+                  child: const Text('Button'),
+                ),
+              ),
             ),
-            child: const Text('Button'),
           ),
-        ),
-      ],
+
+        ],
+      ),
     );
   }
 
@@ -114,43 +141,4 @@ class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTick
     _controller.dispose();
     super.dispose();
   }
-}
-
-
-class AnimatedShape {
-  double size;
-  Offset position;
-  Offset targetPosition;
-
-  AnimatedShape({
-    required this.size,
-    required this.position,
-    required this.targetPosition,
-  });
-
-  void move(double progress) {
-    position = Offset(
-      position.dx + (targetPosition.dx - position.dx) * progress,
-      position.dy + (targetPosition.dy - position.dy) * progress,
-    );
-  }
-}
-
-class ShapePainter extends CustomPainter {
-  List<AnimatedShape> shapes;
-  double progress;
-
-  ShapePainter(this.shapes, this.progress);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.purple.withAlpha(150);
-    for (var shape in shapes) {
-      shape.move(progress);
-      canvas.drawCircle(shape.position, shape.size, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'home.dart';
-import 'saved.dart';
-import 'info.dart';
+import 'naviScreens/home.dart';
+import 'naviScreens/saved.dart';
+import 'naviScreens/info.dart';
+
 class NaviScreen extends StatefulWidget {
   const NaviScreen({super.key});
 
