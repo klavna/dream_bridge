@@ -32,8 +32,6 @@ class _NaviScreenState extends State<NaviScreen> {
       return false;
     }
     return true;
-
-    SystemNavigator.pop();
   }
 
   @override
