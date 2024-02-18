@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(height: size.height * 0.1), // Adjust the space as per your design
             Image.asset(
-              'assets/필요시_이미지_넣을거.png', // Replace with your asset image
+              'assets/images/image1.png', // Replace with your asset image
               height: size.height * 0.3, // Adjust the size as per your design
               fit: BoxFit.cover,
             ),
