@@ -28,12 +28,17 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def flutterNdkVersion = localProperties.getProperty('flutter.ndkVersion')
+if (flutterNdkVersion == null) {
+    flutterNdkVersion = '25.1.8937393'
+}
+
 def googleMapApiKey = localProperties.getProperty('google.map.key')
 
 android {
     namespace "com.nextstep.dream_bridge"
     compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    ndkVersion flutterNdkVersion
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
