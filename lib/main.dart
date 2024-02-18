@@ -1,11 +1,9 @@
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'naviScreens/navi.dart';
-
-import 'mainAnimation/shape.dart';
+import 'mainAnimation/animatedShape.dart';
 import 'mainAnimation/shapePainter.dart';
+import 'naviScreens/navi.dart';
 
 void main() => runApp(const MyApp());
 
@@ -15,7 +13,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'Dream Bridge',
       home: Scaffold(
         body: AnimatedBackground(),
       ),
@@ -32,7 +29,7 @@ class AnimatedBackground extends StatefulWidget {
 
 class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late List<AnimatedShape> shapes=[];
+  late List<AnimatedShape> shapes;
   final int numberOfShapes = 30;
   final Random random = Random();
 
@@ -40,28 +37,37 @@ class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTick
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 10),
       vsync: this,
-    )..repeat();
-
-    // Use a post-frame callback to wait for the build phase to complete
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      final screenHeight = MediaQuery.of(context).size.height;
-
+    )..addListener(() {
       setState(() {
-        shapes = List.generate(numberOfShapes, (index) {
-          final size = random.nextDouble() * 50 + 20;
-          final position = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight);
-          final targetPosition = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight); // 최종 위치도 무작위로 설정
-          final shapeType = ShapeType.values[random.nextInt(ShapeType.values.length)]; // 도형 종류 무작위 선택
-          return AnimatedShape(size: size, position: position, targetPosition: targetPosition, shapeType: shapeType);
-        });
+        for (var shape in shapes) {
+          shape.move();
+          shape.checkBounds(MediaQuery.of(context).size);
+        }
       });
-    });
-
+    })..repeat();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    shapes = List.generate(numberOfShapes, (index) {
+      final size = random.nextDouble() * 50 + 20;
+      final position = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight);
+      final velocity = Offset(random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1); // Generate a random velocity for each shape
+      final shapeType = ShapeType.values[random.nextInt(ShapeType.values.length)];
+      return AnimatedShape(size: size, position: position, velocity: velocity, shapeType: shapeType);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,15 +85,10 @@ class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTick
         ),
       ),
       child: Stack(
-        children: <Widget>[
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: ShapePainter(shapes, _controller.value),
-                child: Container(),
-              );
-            },
+        children: [
+          CustomPaint(
+            painter: ShapePainter(shapes),
+            child: Container(),
           ),
           const Align(
             alignment: Alignment.topLeft,
@@ -125,20 +126,17 @@ class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTick
                       borderRadius: BorderRadius.circular(8.0), // Rounded corners
                     ),
                   ),
-                  child: const Text('Button'),
+                  child: const Text('누가 봐도 버튼'),
                 ),
               ),
             ),
           ),
-
         ],
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 }
+
+
+
+
