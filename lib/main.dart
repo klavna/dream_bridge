@@ -32,7 +32,7 @@ class AnimatedBackground extends StatefulWidget {
 
 class _AnimatedBackgroundState extends State<AnimatedBackground> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late List<AnimatedShape> shapes;
+  late List<AnimatedShape> shapes=[];
   final int numberOfShapes = 30;
   final Random random = Random();
 
