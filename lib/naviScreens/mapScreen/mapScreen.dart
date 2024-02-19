@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ffi';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'organization.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -43,6 +46,8 @@ class _MapScreenState extends State<MapScreen> {
   Map<PolygonId, String> SIDOGUNGU_Name = {};
 
   Map<PolygonId, LatLngBounds> polyBounds = {};
+
+  late String mainID;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +105,7 @@ class _MapScreenState extends State<MapScreen> {
                           void SIDO_Function() {
                             onSIDOPolygonTapped(PolygonId(id));
                           }
+
                           List<LatLng> allCoordinates = [];
                           late Polygon polygon;
                           if (type == 'Polygon') {
@@ -200,7 +206,10 @@ class _MapScreenState extends State<MapScreen> {
 
   // Method to handle polygon tap
   Future<void> onSIDOPolygonTapped(PolygonId polygonId) async {
+    print(SIDOGUNGU_Name.toString());
     String id = polygonId.toString();
+    mainID = SIDOGUNGU_Name[polygonId] ?? "없음";
+
     if (id.contains('-')) {
       polygonId = PolygonId(id.split('-')[0]);
     }
@@ -230,31 +239,59 @@ class _MapScreenState extends State<MapScreen> {
     // Animate camera
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLngBounds(polyBounds[polygonId]!, 60.0));
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 300,
-          margin: const EdgeInsets.only(
-            left: 25,
-            right: 25,
-            bottom: 40,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(
-              Radius.circular(20),
+    DatabaseReference starCountRef = FirebaseDatabase.instance.ref("자선단체/$mainID/$name");
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      String output;
+      String address = "adsd";
+      late List<SocialWelfareOrganization> organizations;
+      if (data == null) {
+        output = "데이터 없음";
+      } else if (data is List<dynamic>) {
+        organizations = data.map((item) {
+          // item을 Map<String, dynamic>으로 안전하게 변환
+          final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+          // 변환된 맵을 사용하여 SocialWelfareOrganization 인스턴스 생성
+          return SocialWelfareOrganization.fromJson(map);
+        }).toList();
+        for (var organization in organizations) {
+          print(organization);
+        }
+      }
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            height: 300,
+            margin: const EdgeInsets.only(left: 25, right: 25, bottom: 40),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-          ),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Text(name),
+            child: PageView.builder(
+              itemCount: organizations.length, // organizations는 SocialWelfareOrganization 객체의 리스트
+              itemBuilder: (context, index) {
+                // 현재 페이지의 SocialWelfareOrganization 객체
+                SocialWelfareOrganization organization = organizations[index];
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(organization.name),
+                      Text(organization.address),
+                      Text(organization.phone),
+                      Text("$index/${organizations.length}"),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-        );
-      },
-      backgroundColor: Colors.transparent, // 앱 <=> 모달의 여백 부분을 투명하게 처리
-    );
+          );
+        },
+        backgroundColor: Colors.transparent, // 앱 <=> 모달의 여백 부분을 투명하게 처리
+      );
+
+    });
   }
 
   // Calculate the bounds from polygon points
