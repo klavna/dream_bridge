@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 
+import 'package:dream_bridge/naviScreens/mapScreen/polygonData.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -90,40 +91,82 @@ class _MapScreenState extends State<MapScreen> {
                   ElevatedButton(
                     child: const Text('시도 표시'),
                     onPressed: () async {
+                      //!시도 from assets
+                      // if (SIDO_Polygons.isEmpty) {
+                      //   final String SIDOgeoJsonString = await rootBundle.loadString('assets/GeoJSON/BND_SIDO_PG.json');
+                      //
+                      //   final SIDOgeoJsonData = jsonDecode(SIDOgeoJsonString);
+                      //   for (var feature in SIDOgeoJsonData['features']) {
+                      //     var geometry = feature['geometry'];
+                      //     var type = geometry['type'];
+                      //     var coordinates = geometry['coordinates'];
+                      //     String id = feature['properties']['SIDO_CD'].toString();
+                      //     String name = feature['properties']['SIDO_NM'].toString();
+                      //     SIDOGUNGU_Name[PolygonId(id)] = name;
+                      //     void SIDO_Function() {
+                      //       onSIDOPolygonTapped(PolygonId(id));
+                      //     }
+                      //
+                      //     List<LatLng> allCoordinates = [];
+                      //     late Polygon polygon;
+                      //     if (type == 'Polygon') {
+                      //       allCoordinates = coordinates[0].map<LatLng>((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble())).toList();
+                      //       polygon = createPolygon(PolygonId(id), allCoordinates, 1, SIDO_Function);
+                      //       SIDO_Polygons.add(polygon);
+                      //     } else if (type == 'MultiPolygon') {
+                      //       for (var i = 0; i < coordinates.length; i++) {
+                      //         List<LatLng> tempCoordinates =
+                      //             coordinates[i][0].map<LatLng>((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble())).toList();
+                      //         allCoordinates.addAll(tempCoordinates);
+                      //         polygon = createPolygon(PolygonId("$id-$i"), tempCoordinates, 0, SIDO_Function);
+                      //         SIDO_Polygons.add(polygon);
+                      //       }
+                      //     }
+                      //     SIDO_Individual[PolygonId(id)] = allCoordinates;
+                      //   }
+                      // }
                       //!시도
                       if (SIDO_Polygons.isEmpty) {
-                        final String SIDOgeoJsonString = await rootBundle.loadString('assets/GeoJSON/BND_SIDO_PG.json');
+                        DatabaseReference starCountRef = FirebaseDatabase.instance.ref("polygonData/kr/SIDO/features");
+                        starCountRef.onValue.listen((DatabaseEvent event) async {
+                          final data = event.snapshot.value;
+                          if (data != null && data is List<dynamic>) {
+                            List<GeoFeature> geoData = data.map<GeoFeature>((item) {
+                              final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+                              return GeoFeature.fromJson(map);
+                            }).toList();
+                            for (var feature in geoData) {
+                              var geometry = feature.geometry;
+                              var type = geometry.type;
+                              var coordinates = geometry.coordinates;
+                              String id = feature.properties.sidoCd;
+                              String name = feature.properties.sidoNm;
+                              SIDOGUNGU_Name[PolygonId(id)] = name;
 
-                        final SIDOgeoJsonData = jsonDecode(SIDOgeoJsonString);
-                        for (var feature in SIDOgeoJsonData['features']) {
-                          var geometry = feature['geometry'];
-                          var type = geometry['type'];
-                          var coordinates = geometry['coordinates'];
-                          String id = feature['properties']['SIDO_CD'].toString();
-                          String name = feature['properties']['SIDO_NM'].toString();
-                          SIDOGUNGU_Name[PolygonId(id)] = name;
-                          void SIDO_Function() {
-                            onSIDOPolygonTapped(PolygonId(id));
-                          }
+                              void SIDO_Function() {
+                                onSIDOPolygonTapped(PolygonId(id));
+                              }
 
-                          List<LatLng> allCoordinates = [];
-                          late Polygon polygon;
-                          if (type == 'Polygon') {
-                            allCoordinates = coordinates[0].map<LatLng>((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble())).toList();
-                            polygon = createPolygon(PolygonId(id), allCoordinates, 1, SIDO_Function);
-                            SIDO_Polygons.add(polygon);
-                          } else if (type == 'MultiPolygon') {
-                            for (var i = 0; i < coordinates.length; i++) {
-                              List<LatLng> tempCoordinates =
-                                  coordinates[i][0].map<LatLng>((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble())).toList();
-                              allCoordinates.addAll(tempCoordinates);
-                              polygon = createPolygon(PolygonId("$id-$i"), tempCoordinates, 0, SIDO_Function);
-                              SIDO_Polygons.add(polygon);
+                              List<LatLng> allCoordinates = [];
+                              late Polygon polygon;
+                              if (type == 'Polygon') {
+                                allCoordinates = _convertToLatLngList(coordinates[0][0]);
+                                polygon = createPolygon(PolygonId(id), allCoordinates, 1, SIDO_Function);
+                                SIDO_Polygons.add(polygon);
+                              } else if (type == 'MultiPolygon') {
+                                for (var i = 0; i < coordinates.length; i++) {
+                                  List<LatLng> tempCoordinates = _convertToLatLngList(coordinates[i][0]);
+                                  allCoordinates.addAll(tempCoordinates);
+                                  polygon = createPolygon(PolygonId("$id-$i"), tempCoordinates, 0, SIDO_Function);
+                                  SIDO_Polygons.add(polygon);
+                                }
+                              }
+                              SIDO_Individual[PolygonId(id)] = allCoordinates;
                             }
                           }
-                          SIDO_Individual[PolygonId(id)] = allCoordinates;
-                        }
+                        });
                       }
+
                       //!시군구
                       if (SIGUNGU_Individual.isEmpty) {
                         final String SIGUNGUgeoJsonString = await rootBundle.loadString('assets/GeoJSON/BND_SIGUNGU_PG.json');
@@ -181,6 +224,9 @@ class _MapScreenState extends State<MapScreen> {
         ],
       ),
     );
+  }
+  List<LatLng> _convertToLatLngList(List<List<double>> coords) {
+    return coords.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
   }
 
   createPolygon(PolygonId polygonId, List<LatLng> points, int zIndex, void Function()? onTapFunction) {
@@ -254,9 +300,6 @@ class _MapScreenState extends State<MapScreen> {
           // 변환된 맵을 사용하여 SocialWelfareOrganization 인스턴스 생성
           return SocialWelfareOrganization.fromJson(map);
         }).toList();
-        for (var organization in organizations) {
-          print(organization);
-        }
       }
       showModalBottomSheet(
         context: context,
@@ -280,7 +323,7 @@ class _MapScreenState extends State<MapScreen> {
                       Text(organization.name),
                       Text(organization.address),
                       Text(organization.phone),
-                      Text("$index/${organizations.length}"),
+                      Text("${index+1}/${organizations.length}"),
                     ],
                   ),
                 );
