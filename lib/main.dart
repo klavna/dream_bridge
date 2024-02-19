@@ -1,11 +1,22 @@
 import 'dart:math';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'mainAnimation/animatedShape.dart';
 import 'mainAnimation/shapePainter.dart';
 import 'naviScreens/navi.dart';
 
-void main() => runApp(const MyApp());
+// void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDefault();
+  runApp(const MyApp());
+}
+
+Future<void> initializeDefault() async {
+  FirebaseApp app = await Firebase.initializeApp();
+  print('Initialized default app $app');
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
