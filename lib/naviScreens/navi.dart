@@ -76,7 +76,7 @@ class _NaviScreenState extends State<NaviScreen> {
               _currentIndex = index;
             });
           },
-          padding: EdgeInsets.all(15),
+          padding: const EdgeInsets.all(15),
           tabs: const [
             // [디자인] Home button
             GButton(
@@ -85,7 +85,7 @@ class _NaviScreenState extends State<NaviScreen> {
               textStyle: TextStyle(
                 fontFamily: 'Roboto-Medium',
                 fontSize: 16.0,
-                color: const Color(0xFF9433AC),
+                color: Color(0xFF9433AC),
               ),
             ),
             // [디자인] Map button
@@ -95,7 +95,7 @@ class _NaviScreenState extends State<NaviScreen> {
               textStyle: TextStyle(
                 fontFamily: 'Roboto-Medium',
                 fontSize: 16.0,
-                color: const Color(0xFF9433AC),
+                color: Color(0xFF9433AC),
               ),
             ),
             // [디자인] Information button
@@ -105,7 +105,7 @@ class _NaviScreenState extends State<NaviScreen> {
               textStyle: TextStyle(
                 fontFamily: 'Roboto-Medium',
                 fontSize: 16.0,
-                color: const Color(0xFF9433AC),
+                color: Color(0xFF9433AC),
               ),
             ),
           ],

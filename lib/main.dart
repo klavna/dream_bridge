@@ -1,30 +1,39 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'mainAnimation/animatedShape.dart';
 import 'naviScreens/navi.dart';
 
-import 'mainAnimation/shape.dart';
 import 'mainAnimation/shapePainter.dart';
 
-void main() => runApp(const MyApp());
+// void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDefault();
+  runApp(const MyApp());
+}
+
+Future<void> initializeDefault() async {
+  FirebaseApp app = await Firebase.initializeApp();
+  print('Initialized default app $app');
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dream Bridge',
+    return const MaterialApp(
       home: Scaffold(
-        body: const AnimatedBackground(),
+        body: AnimatedBackground(),
       ),
     );
   }
 }
 
 class AnimatedBackground extends StatefulWidget {
-  const AnimatedBackground({Key? key});
+  const AnimatedBackground({super.key});
 
   @override
   _AnimatedBackgroundState createState() => _AnimatedBackgroundState();
@@ -33,46 +42,48 @@ class AnimatedBackground extends StatefulWidget {
 class _AnimatedBackgroundState extends State<AnimatedBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late List<AnimatedShape> shapes = [];
-  final int numberOfShapes = 0;
+  late List<AnimatedShape> shapes;
+  final int numberOfShapes = 30;
   final Random random = Random();
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 10),
       vsync: this,
-    )..repeat();
-
-    // Use a post-frame callback to wait for the build phase to complete
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      final screenHeight = MediaQuery.of(context).size.height;
-
+    )..addListener(() {
       setState(() {
-        shapes = List.generate(numberOfShapes, (index) {
-          final size = random.nextDouble() * 50 + 20;
-          final position = Offset(random.nextDouble() * screenWidth,
-              random.nextDouble() * screenHeight);
-          final targetPosition = Offset(random.nextDouble() * screenWidth,
-              random.nextDouble() * screenHeight);
-          final shapeType =
-              ShapeType.values[random.nextInt(ShapeType.values.length)];
-          return AnimatedShape(
-              size: size,
-              position: position,
-              targetPosition: targetPosition,
-              shapeType: shapeType);
-        });
+        for (var shape in shapes) {
+          shape.move();
+          shape.checkBounds(MediaQuery.of(context).size);
+        }
       });
-    });
+    })..repeat();
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    shapes = List.generate(numberOfShapes, (index) {
+      final size = random.nextDouble() * 50 + 20;
+      final position = Offset(random.nextDouble() * screenWidth, random.nextDouble() * screenHeight);
+      final velocity = Offset(random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1); // Generate a random velocity for each shape
+      final shapeType = ShapeType.values[random.nextInt(ShapeType.values.length)];
+      return AnimatedShape(size: size, position: position, velocity: velocity, shapeType: shapeType);
+    });
+  }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/background_1.png'),
           fit: BoxFit.cover,
@@ -80,28 +91,23 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
       ),
       child: Stack(
         children: <Widget>[
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: ShapePainter(shapes, _controller.value),
-                child: Container(),
-              );
-            },
+          CustomPaint(
+            painter: ShapePainter(shapes),
+            child: Container(),
           ),
           Align(
             alignment: Alignment.topLeft,
             child: Padding(
               padding: const EdgeInsets.only(top: 100.0, left: 30),
               child: RichText(
-                text: TextSpan(
+                text: const TextSpan(
                   children: [
                     TextSpan(
                       text: 'Dream Bridge',
                       style: TextStyle(
                         fontFamily: 'Roboto-Black',
                         fontSize: 50.0,
-                        color: const Color(0xff846DA0),
+                        color: Color(0xff846DA0),
                         height: 2,
                         letterSpacing: -1.0,// Adjust the lineHeight value
                       ),
@@ -111,7 +117,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                       style: TextStyle(
                         fontFamily: 'Roboto-Bold',
                         fontSize: 30.0,
-                        color: const Color(0xff846DA0),
+                        color: Color(0xff846DA0),
                         height: 0.8, // Adjust the lineHeight value
                       ),
                     ),
@@ -189,11 +195,5 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

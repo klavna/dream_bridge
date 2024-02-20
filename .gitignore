@@ -43,7 +43,7 @@ app.*.map.json
 /android/app/release
 android/app/google-services.json
 ios/Runner/AppDelegate.swift
-ios/Runner/AppDelegate.swift
 lib/firebase_options.dart
 ios/Runner/GoogleService-Info.plist
 ios/firebase_app_id_file.json
+secrets.env

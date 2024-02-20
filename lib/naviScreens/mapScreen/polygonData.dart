@@ -82,13 +82,17 @@ class Geometry {
 
 class Properties {
   final String baseDate;
-  final String sidoCd;
-  final String sidoNm;
+  final String? sidoCd;
+  final String? sidoNm;
+  final String? sigunguCd;
+  final String? sigunguNm;
 
   Properties({
     required this.baseDate,
-    required this.sidoCd,
-    required this.sidoNm,
+    this.sidoCd,
+    this.sidoNm,
+    this.sigunguCd,
+    this.sigunguNm,
   });
 
   factory Properties.fromJson(Map<String, dynamic> json) {
@@ -96,6 +100,9 @@ class Properties {
       baseDate: json['BASE_DATE'],
       sidoCd: json['SIDO_CD'],
       sidoNm: json['SIDO_NM'],
+      sigunguCd: json['SIGUNGU_CD'],
+      sigunguNm: json['SIGUNGU_NM'],
     );
   }
 }
+
